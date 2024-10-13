@@ -44,15 +44,15 @@ pub enum Marker {
     OfType = b'$',
 }
 
-impl Into<char> for Marker {
-    fn into(self) -> char {
-        self as u8 as char
+impl From<Marker> for char {
+    fn from(val: Marker) -> Self {
+        val as u8 as char
     }
 }
 
-impl Into<&[u8]> for Marker {
-    fn into(self) -> &'static [u8] {
-        match self {
+impl From<Marker> for &[u8] {
+    fn from(val: Marker) -> Self {
+        match val {
             Marker::Null => b"Z",
             Marker::NoOp => b"N",
             Marker::True => b"T",

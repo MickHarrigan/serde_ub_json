@@ -1,5 +1,5 @@
-use std::fmt::{Debug, Display, Formatter};
 use crate::value::Marker;
+use std::fmt::{Debug, Display, Formatter};
 
 pub type Result<T> = std::result::Result<T, Error>;
 
@@ -53,8 +53,8 @@ impl Display for Error {
 
 impl serde::ser::Error for Error {
     fn custom<T>(msg: T) -> Self
-        where
-            T: Display,
+    where
+        T: Display,
     {
         let s = format!("{}", msg);
         Self::Custom(s)
@@ -63,8 +63,8 @@ impl serde::ser::Error for Error {
 
 impl serde::de::Error for Error {
     fn custom<T>(msg: T) -> Self
-        where
-            T: Display,
+    where
+        T: Display,
     {
         let s = format!("{}", msg);
         Self::Custom(s)

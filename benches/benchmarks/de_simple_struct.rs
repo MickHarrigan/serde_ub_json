@@ -1,4 +1,4 @@
-use criterion::{black_box, criterion_group, Criterion, BenchmarkId};
+use criterion::{black_box, criterion_group, BenchmarkId, Criterion};
 use serde::Deserialize;
 
 #[derive(Clone, Debug, Deserialize)]
@@ -33,12 +33,12 @@ fn bench_de_simple_struct(c: &mut Criterion) {
 
     group.bench_function(
         BenchmarkId::new("de_simple_struct_json", "SimpleStruct"),
-        |b| b.iter(|| serde_json::from_slice::<'_, SimpleStruct>(black_box(json)).unwrap())
+        |b| b.iter(|| serde_json::from_slice::<'_, SimpleStruct>(black_box(json)).unwrap()),
     );
 
     group.bench_function(
         BenchmarkId::new("de_simple_struct_ub_json", "SimpleStruct"),
-        |b| b.iter(|| serde_ub_json::from_bytes::<'_, SimpleStruct>(black_box(&ub_json)).unwrap())
+        |b| b.iter(|| serde_ub_json::from_bytes::<'_, SimpleStruct>(black_box(&ub_json)).unwrap()),
     );
 
     group.finish();

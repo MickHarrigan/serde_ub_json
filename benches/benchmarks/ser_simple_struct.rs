@@ -1,4 +1,4 @@
-use criterion::{black_box, criterion_group, Criterion, BenchmarkId};
+use criterion::{black_box, criterion_group, BenchmarkId, Criterion};
 use serde::Serialize;
 
 #[derive(Clone, Debug, Serialize)]
@@ -17,12 +17,12 @@ fn bench_ser_simple_struct(c: &mut Criterion) {
 
     group.bench_function(
         BenchmarkId::new("ser_simple_struct_json", "SimpleStruct"),
-        |b| b.iter(|| serde_json::to_vec(black_box(&value)))
+        |b| b.iter(|| serde_json::to_vec(black_box(&value))),
     );
 
     group.bench_function(
         BenchmarkId::new("ser_simple_struct_ub_json", "SimpleStruct"),
-        |b| b.iter(|| serde_ub_json::to_bytes(black_box(&value)))
+        |b| b.iter(|| serde_ub_json::to_bytes(black_box(&value))),
     );
 
     group.finish();

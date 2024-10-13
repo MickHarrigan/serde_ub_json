@@ -1,4 +1,4 @@
-use criterion::{black_box, criterion_group, Criterion, BenchmarkId};
+use criterion::{black_box, criterion_group, BenchmarkId, Criterion};
 use serde::Deserialize;
 
 fn bench_de_vec_of_i8(c: &mut Criterion) {
@@ -21,15 +21,13 @@ fn bench_de_vec_of_i8(c: &mut Criterion) {
 
     let mut group = c.benchmark_group("de_vec_of_i8");
 
-    group.bench_function(
-        BenchmarkId::new("de_vec_of_i8_json", "Vec<i8>"),
-        |b| b.iter(|| serde_json::from_slice::<'_, Vec<i8>>(black_box(&json)).unwrap())
-    );
+    group.bench_function(BenchmarkId::new("de_vec_of_i8_json", "Vec<i8>"), |b| {
+        b.iter(|| serde_json::from_slice::<'_, Vec<i8>>(black_box(&json)).unwrap())
+    });
 
-    group.bench_function(
-        BenchmarkId::new("de_vec_of_i8_ub_json", "Vec<i8>"),
-        |b| b.iter(|| serde_ub_json::from_bytes::<'_, Vec<i8>>(black_box(&ub_json)).unwrap())
-    );
+    group.bench_function(BenchmarkId::new("de_vec_of_i8_ub_json", "Vec<i8>"), |b| {
+        b.iter(|| serde_ub_json::from_bytes::<'_, Vec<i8>>(black_box(&ub_json)).unwrap())
+    });
 
     group.finish();
 }
@@ -54,15 +52,13 @@ fn bench_de_vec_of_i16(c: &mut Criterion) {
 
     let mut group = c.benchmark_group("de_vec_of_i16");
 
-    group.bench_function(
-        BenchmarkId::new("de_vec_of_i16_json", "Vec<i16>"),
-        |b| b.iter(|| serde_json::from_slice::<'_, Vec<i16>>(black_box(&json)).unwrap())
-    );
+    group.bench_function(BenchmarkId::new("de_vec_of_i16_json", "Vec<i16>"), |b| {
+        b.iter(|| serde_json::from_slice::<'_, Vec<i16>>(black_box(&json)).unwrap())
+    });
 
-    group.bench_function(
-        BenchmarkId::new("de_vec_of_i16_ub_json", "Vec<i16>"),
-        |b| b.iter(|| serde_ub_json::from_bytes::<'_, Vec<i16>>(black_box(&ub_json)).unwrap())
-    );
+    group.bench_function(BenchmarkId::new("de_vec_of_i16_ub_json", "Vec<i16>"), |b| {
+        b.iter(|| serde_ub_json::from_bytes::<'_, Vec<i16>>(black_box(&ub_json)).unwrap())
+    });
 
     group.finish();
 }

@@ -1,15 +1,17 @@
 use std::mem::size_of;
 use std::str;
 
-use serde::de::{DeserializeSeed, EnumAccess, IntoDeserializer, MapAccess, SeqAccess, VariantAccess, Visitor};
+use serde::de::{
+    DeserializeSeed, EnumAccess, IntoDeserializer, MapAccess, SeqAccess, VariantAccess, Visitor,
+};
 use serde::Deserialize;
 
-use crate::{Error, Result};
 use crate::value::Marker;
+use crate::{Error, Result};
 
 pub fn from_bytes<'de, T>(bytes: &'de [u8]) -> Result<T>
-    where
-        T: Deserialize<'de>,
+where
+    T: Deserialize<'de>,
 {
     let mut deserializer = Deserializer::new(bytes);
     let t = T::deserialize(&mut deserializer)?;
@@ -30,7 +32,7 @@ impl<'de> Deserializer<'de> {
     }
 
     fn peek_byte(&self) -> Result<u8> {
-        if self.bytes.len() > 0 {
+        if !self.bytes.is_empty() {
             let byte = self.bytes[0];
             Ok(byte)
         } else {
@@ -39,7 +41,7 @@ impl<'de> Deserializer<'de> {
     }
 
     fn read_byte(&mut self) -> Result<u8> {
-        if self.bytes.len() > 0 {
+        if !self.bytes.is_empty() {
             let byte = self.bytes[0];
             self.bytes = &self.bytes[1..];
             Ok(byte)
@@ -89,6 +91,7 @@ impl<'de> Deserializer<'de> {
     fn read_len(&mut self) -> Result<usize> {
         let size = match self.read_marker()? {
             Marker::I8 => self.read_i8()? as usize,
+            Marker::U8 => self.read_u8()? as usize,
             Marker::I16 => self.read_i16()? as usize,
             Marker::I32 => self.read_i32()? as usize,
             Marker::I64 => self.read_i64()? as usize,
@@ -165,8 +168,8 @@ impl<'a, 'de: 'a> serde::de::Deserializer<'de> for &'a mut Deserializer<'de> {
     type Error = Error;
 
     fn deserialize_any<V>(self, visitor: V) -> Result<V::Value>
-        where
-            V: Visitor<'de>,
+    where
+        V: Visitor<'de>,
     {
         match self.peek_marker()? {
             Marker::Null => self.deserialize_option(visitor),
@@ -178,8 +181,8 @@ impl<'a, 'de: 'a> serde::de::Deserializer<'de> for &'a mut Deserializer<'de> {
     }
 
     fn deserialize_bool<V>(self, visitor: V) -> Result<V::Value>
-        where
-            V: Visitor<'de>,
+    where
+        V: Visitor<'de>,
     {
         match self.take_or_read_marker()? {
             Marker::True => visitor.visit_bool(true),
@@ -189,8 +192,8 @@ impl<'a, 'de: 'a> serde::de::Deserializer<'de> for &'a mut Deserializer<'de> {
     }
 
     fn deserialize_i8<V>(self, visitor: V) -> Result<V::Value>
-        where
-            V: Visitor<'de>,
+    where
+        V: Visitor<'de>,
     {
         match self.take_or_read_marker()? {
             Marker::I8 => visitor.visit_i8(self.read_i8()?),
@@ -199,8 +202,8 @@ impl<'a, 'de: 'a> serde::de::Deserializer<'de> for &'a mut Deserializer<'de> {
     }
 
     fn deserialize_i16<V>(self, visitor: V) -> Result<V::Value>
-        where
-            V: Visitor<'de>,
+    where
+        V: Visitor<'de>,
     {
         match self.take_or_read_marker()? {
             Marker::I16 => visitor.visit_i16(self.read_i16()?),
@@ -210,8 +213,8 @@ impl<'a, 'de: 'a> serde::de::Deserializer<'de> for &'a mut Deserializer<'de> {
     }
 
     fn deserialize_i32<V>(self, visitor: V) -> Result<V::Value>
-        where
-            V: Visitor<'de>,
+    where
+        V: Visitor<'de>,
     {
         match self.take_or_read_marker()? {
             Marker::I32 => visitor.visit_i32(self.read_i32()?),
@@ -222,21 +225,26 @@ impl<'a, 'de: 'a> serde::de::Deserializer<'de> for &'a mut Deserializer<'de> {
     }
 
     fn deserialize_i64<V>(self, visitor: V) -> Result<V::Value>
-        where
-            V: Visitor<'de>,
+    where
+        V: Visitor<'de>,
     {
         match self.take_or_read_marker()? {
             Marker::I64 => visitor.visit_i64(self.read_i64()?),
             Marker::I32 => visitor.visit_i64((self.read_i32()?) as i64),
             Marker::I16 => visitor.visit_i64((self.read_i16()?) as i64),
             Marker::I8 => visitor.visit_i64((self.read_i8()?) as i64),
-            _ => Err(Error::Expected(vec![Marker::I64, Marker::I32, Marker::I16, Marker::I8])),
+            _ => Err(Error::Expected(vec![
+                Marker::I64,
+                Marker::I32,
+                Marker::I16,
+                Marker::I8,
+            ])),
         }
     }
 
     fn deserialize_u8<V>(self, visitor: V) -> Result<V::Value>
-        where
-            V: Visitor<'de>,
+    where
+        V: Visitor<'de>,
     {
         match self.take_or_read_marker()? {
             Marker::U8 => visitor.visit_u8(self.read_u8()?),
@@ -245,8 +253,8 @@ impl<'a, 'de: 'a> serde::de::Deserializer<'de> for &'a mut Deserializer<'de> {
     }
 
     fn deserialize_u16<V>(self, visitor: V) -> Result<V::Value>
-        where
-            V: Visitor<'de>,
+    where
+        V: Visitor<'de>,
     {
         match self.take_or_read_marker()? {
             Marker::U8 => visitor.visit_u16((self.read_u8()?) as u16),
@@ -255,8 +263,8 @@ impl<'a, 'de: 'a> serde::de::Deserializer<'de> for &'a mut Deserializer<'de> {
     }
 
     fn deserialize_u32<V>(self, visitor: V) -> Result<V::Value>
-        where
-            V: Visitor<'de>,
+    where
+        V: Visitor<'de>,
     {
         match self.take_or_read_marker()? {
             Marker::U8 => visitor.visit_u32((self.read_u8()?) as u32),
@@ -265,8 +273,8 @@ impl<'a, 'de: 'a> serde::de::Deserializer<'de> for &'a mut Deserializer<'de> {
     }
 
     fn deserialize_u64<V>(self, visitor: V) -> Result<V::Value>
-        where
-            V: Visitor<'de>,
+    where
+        V: Visitor<'de>,
     {
         match self.take_or_read_marker()? {
             Marker::U8 => visitor.visit_u64((self.read_u8()?) as u64),
@@ -275,8 +283,8 @@ impl<'a, 'de: 'a> serde::de::Deserializer<'de> for &'a mut Deserializer<'de> {
     }
 
     fn deserialize_f32<V>(self, visitor: V) -> Result<V::Value>
-        where
-            V: Visitor<'de>,
+    where
+        V: Visitor<'de>,
     {
         match self.take_or_read_marker()? {
             Marker::F32 => visitor.visit_f32(self.read_f32()?),
@@ -285,8 +293,8 @@ impl<'a, 'de: 'a> serde::de::Deserializer<'de> for &'a mut Deserializer<'de> {
     }
 
     fn deserialize_f64<V>(self, visitor: V) -> Result<V::Value>
-        where
-            V: Visitor<'de>,
+    where
+        V: Visitor<'de>,
     {
         match self.take_or_read_marker()? {
             Marker::F64 => visitor.visit_f64(self.read_f64()?),
@@ -296,8 +304,8 @@ impl<'a, 'de: 'a> serde::de::Deserializer<'de> for &'a mut Deserializer<'de> {
     }
 
     fn deserialize_char<V>(self, visitor: V) -> Result<V::Value>
-        where
-            V: Visitor<'de>,
+    where
+        V: Visitor<'de>,
     {
         match self.take_or_read_marker()? {
             Marker::Char => {
@@ -318,8 +326,8 @@ impl<'a, 'de: 'a> serde::de::Deserializer<'de> for &'a mut Deserializer<'de> {
     }
 
     fn deserialize_str<V>(self, visitor: V) -> Result<V::Value>
-        where
-            V: Visitor<'de>,
+    where
+        V: Visitor<'de>,
     {
         match self.take_or_read_marker()? {
             Marker::String => visitor.visit_borrowed_str(self.read_str()?),
@@ -335,8 +343,8 @@ impl<'a, 'de: 'a> serde::de::Deserializer<'de> for &'a mut Deserializer<'de> {
     }
 
     fn deserialize_string<V>(self, visitor: V) -> Result<V::Value>
-        where
-            V: Visitor<'de>,
+    where
+        V: Visitor<'de>,
     {
         match self.take_or_read_marker()? {
             Marker::String => visitor.visit_string(self.read_string()?),
@@ -349,8 +357,8 @@ impl<'a, 'de: 'a> serde::de::Deserializer<'de> for &'a mut Deserializer<'de> {
     }
 
     fn deserialize_bytes<V>(self, visitor: V) -> Result<V::Value>
-        where
-            V: Visitor<'de>,
+    where
+        V: Visitor<'de>,
     {
         match self.read_marker()? {
             Marker::ArrayStart => {
@@ -377,11 +385,13 @@ impl<'a, 'de: 'a> serde::de::Deserializer<'de> for &'a mut Deserializer<'de> {
                 };
 
                 let value = match len {
-                    Some(len) => { // read borrowed bytes
+                    Some(len) => {
+                        // read borrowed bytes
                         let bytes = self.read_bytes(len)?;
                         visitor.visit_borrowed_bytes::<Error>(bytes)?
                     }
-                    None => { // this will fail because it is impossible to read as borrowed bytes
+                    None => {
+                        // this will fail because it is impossible to read as borrowed bytes
                         let bytes = vec![0u8];
                         visitor.visit_bytes::<Error>(&bytes)?
                     }
@@ -394,15 +404,15 @@ impl<'a, 'de: 'a> serde::de::Deserializer<'de> for &'a mut Deserializer<'de> {
     }
 
     fn deserialize_byte_buf<V>(self, visitor: V) -> Result<V::Value>
-        where
-            V: Visitor<'de>,
+    where
+        V: Visitor<'de>,
     {
         self.deserialize_bytes(visitor)
     }
 
     fn deserialize_option<V>(self, visitor: V) -> Result<V::Value>
-        where
-            V: Visitor<'de>,
+    where
+        V: Visitor<'de>,
     {
         match self.peek_marker()? {
             Marker::Null => {
@@ -414,8 +424,8 @@ impl<'a, 'de: 'a> serde::de::Deserializer<'de> for &'a mut Deserializer<'de> {
     }
 
     fn deserialize_unit<V>(self, visitor: V) -> Result<V::Value>
-        where
-            V: Visitor<'de>,
+    where
+        V: Visitor<'de>,
     {
         match self.read_marker()? {
             Marker::Null => visitor.visit_unit(),
@@ -424,22 +434,22 @@ impl<'a, 'de: 'a> serde::de::Deserializer<'de> for &'a mut Deserializer<'de> {
     }
 
     fn deserialize_unit_struct<V>(self, _name: &'static str, visitor: V) -> Result<V::Value>
-        where
-            V: Visitor<'de>,
+    where
+        V: Visitor<'de>,
     {
         self.deserialize_unit(visitor)
     }
 
     fn deserialize_newtype_struct<V>(self, _name: &'static str, visitor: V) -> Result<V::Value>
-        where
-            V: Visitor<'de>,
+    where
+        V: Visitor<'de>,
     {
         visitor.visit_newtype_struct(self)
     }
 
-    fn deserialize_seq<V>(mut self, visitor: V) -> Result<V::Value>
-        where
-            V: Visitor<'de>,
+    fn deserialize_seq<V>(self, visitor: V) -> Result<V::Value>
+    where
+        V: Visitor<'de>,
     {
         match self.read_marker()? {
             Marker::ArrayStart => {
@@ -466,10 +476,14 @@ impl<'a, 'de: 'a> serde::de::Deserializer<'de> for &'a mut Deserializer<'de> {
                 };
 
                 let value = visitor.visit_seq(ArrayAccess {
-                    de: &mut self,
+                    de: self,
                     len,
                     of_type,
-                    trailer: if len.is_some() { None } else { Some(Marker::ArrayEnd) },
+                    trailer: if len.is_some() {
+                        None
+                    } else {
+                        Some(Marker::ArrayEnd)
+                    },
                 })?;
                 Ok(value)
             }
@@ -478,8 +492,8 @@ impl<'a, 'de: 'a> serde::de::Deserializer<'de> for &'a mut Deserializer<'de> {
     }
 
     fn deserialize_tuple<V>(self, _len: usize, visitor: V) -> Result<V::Value>
-        where
-            V: Visitor<'de>,
+    where
+        V: Visitor<'de>,
     {
         self.deserialize_seq(visitor)
     }
@@ -490,15 +504,15 @@ impl<'a, 'de: 'a> serde::de::Deserializer<'de> for &'a mut Deserializer<'de> {
         _len: usize,
         visitor: V,
     ) -> Result<V::Value>
-        where
-            V: Visitor<'de>,
+    where
+        V: Visitor<'de>,
     {
         self.deserialize_seq(visitor)
     }
 
-    fn deserialize_map<V>(mut self, visitor: V) -> Result<V::Value>
-        where
-            V: Visitor<'de>,
+    fn deserialize_map<V>(self, visitor: V) -> Result<V::Value>
+    where
+        V: Visitor<'de>,
     {
         match self.read_marker()? {
             Marker::ObjectStart => {
@@ -525,10 +539,14 @@ impl<'a, 'de: 'a> serde::de::Deserializer<'de> for &'a mut Deserializer<'de> {
                 };
 
                 let value = visitor.visit_map(ObjectAccess {
-                    de: &mut self,
+                    de: self,
                     len,
                     of_type,
-                    trailer: if len.is_some() { None } else { Some(Marker::ObjectEnd) }
+                    trailer: if len.is_some() {
+                        None
+                    } else {
+                        Some(Marker::ObjectEnd)
+                    },
                 })?;
                 Ok(value)
             }
@@ -542,8 +560,8 @@ impl<'a, 'de: 'a> serde::de::Deserializer<'de> for &'a mut Deserializer<'de> {
         _fields: &'static [&'static str],
         visitor: V,
     ) -> Result<V::Value>
-        where
-            V: Visitor<'de>,
+    where
+        V: Visitor<'de>,
     {
         self.deserialize_map(visitor)
     }
@@ -554,8 +572,8 @@ impl<'a, 'de: 'a> serde::de::Deserializer<'de> for &'a mut Deserializer<'de> {
         _variants: &'static [&'static str],
         visitor: V,
     ) -> Result<V::Value>
-        where
-            V: Visitor<'de>,
+    where
+        V: Visitor<'de>,
     {
         match self.read_marker()? {
             Marker::String => {
@@ -568,7 +586,8 @@ impl<'a, 'de: 'a> serde::de::Deserializer<'de> for &'a mut Deserializer<'de> {
                         // both type and length are specified
                         self.read_marker()?; // of type
                         self.read_marker()?; // type
-                        match self.read_marker()? { // length
+                        match self.read_marker()? {
+                            // length
                             Marker::Length => {
                                 let len = self.read_len()?;
                                 Some(len)
@@ -582,37 +601,33 @@ impl<'a, 'de: 'a> serde::de::Deserializer<'de> for &'a mut Deserializer<'de> {
                         let len = self.read_len()?;
                         Some(len)
                     }
-                    _ => None
+                    _ => None,
                 };
 
-                let value = visitor.visit_enum(ItemAccess {
-                    de: self
-                })?;
+                let value = visitor.visit_enum(ItemAccess { de: self })?;
 
                 match len {
                     Some(_) => Ok(value),
-                    None => {
-                        match self.read_marker()? {
-                            Marker::ObjectEnd => Ok(value),
-                            _ => Err(Error::Expected(vec![Marker::ObjectEnd])),
-                        }
+                    None => match self.read_marker()? {
+                        Marker::ObjectEnd => Ok(value),
+                        _ => Err(Error::Expected(vec![Marker::ObjectEnd])),
                     },
                 }
             }
-            _ => Err(Error::Expected(vec![Marker::String, Marker::ObjectStart]))
+            _ => Err(Error::Expected(vec![Marker::String, Marker::ObjectStart])),
         }
     }
 
     fn deserialize_identifier<V>(self, visitor: V) -> Result<V::Value>
-        where
-            V: Visitor<'de>,
+    where
+        V: Visitor<'de>,
     {
         self.deserialize_str(visitor)
     }
 
     fn deserialize_ignored_any<V>(self, visitor: V) -> Result<V::Value>
-        where
-            V: Visitor<'de>,
+    where
+        V: Visitor<'de>,
     {
         self.deserialize_any(visitor)
     }
@@ -629,8 +644,8 @@ impl<'de, 'a> SeqAccess<'de> for ArrayAccess<'a, 'de> {
     type Error = Error;
 
     fn next_element_seed<T>(&mut self, seed: T) -> Result<Option<T::Value>>
-        where
-            T: DeserializeSeed<'de>,
+    where
+        T: DeserializeSeed<'de>,
     {
         match self.len {
             Some(len) => {
@@ -663,7 +678,7 @@ impl<'de, 'a> SeqAccess<'de> for ArrayAccess<'a, 'de> {
                     if marker == m {
                         self.de.read_marker()?;
                         self.len = Some(0);
-                        return Ok(None)
+                        return Ok(None);
                     }
                 }
 
@@ -697,8 +712,8 @@ impl<'de, 'a> MapAccess<'de> for ObjectAccess<'a, 'de> {
     type Error = Error;
 
     fn next_key_seed<K>(&mut self, seed: K) -> Result<Option<K::Value>>
-        where
-            K: DeserializeSeed<'de>,
+    where
+        K: DeserializeSeed<'de>,
     {
         match self.len {
             Some(len) => {
@@ -731,7 +746,7 @@ impl<'de, 'a> MapAccess<'de> for ObjectAccess<'a, 'de> {
                     if marker == m {
                         self.de.read_marker()?;
                         self.len = Some(0);
-                        return Ok(None)
+                        return Ok(None);
                     }
                 }
 
@@ -756,8 +771,8 @@ impl<'de, 'a> MapAccess<'de> for ObjectAccess<'a, 'de> {
     }
 
     fn next_value_seed<V>(&mut self, seed: V) -> Result<V::Value>
-        where
-            V: DeserializeSeed<'de>,
+    where
+        V: DeserializeSeed<'de>,
     {
         // hint type to the deserializer if set
         self.de.of_type = self.of_type;
@@ -775,8 +790,8 @@ impl<'de, 'a> EnumAccess<'de> for ItemAccess<'a, 'de> {
     type Variant = Self;
 
     fn variant_seed<V>(self, seed: V) -> Result<(V::Value, Self::Variant)>
-        where
-            V: DeserializeSeed<'de>,
+    where
+        V: DeserializeSeed<'de>,
     {
         // objects always have string keys
         self.de.of_type = Some(Marker::String);
@@ -793,22 +808,22 @@ impl<'de, 'a> VariantAccess<'de> for ItemAccess<'a, 'de> {
     }
 
     fn newtype_variant_seed<T>(self, seed: T) -> Result<T::Value>
-        where
-            T: DeserializeSeed<'de>,
+    where
+        T: DeserializeSeed<'de>,
     {
         seed.deserialize(self.de)
     }
 
     fn tuple_variant<V>(self, _len: usize, visitor: V) -> Result<V::Value>
-        where
-            V: Visitor<'de>,
+    where
+        V: Visitor<'de>,
     {
         serde::de::Deserializer::deserialize_seq(self.de, visitor)
     }
 
     fn struct_variant<V>(self, _fields: &'static [&'static str], visitor: V) -> Result<V::Value>
-        where
-            V: Visitor<'de>,
+    where
+        V: Visitor<'de>,
     {
         serde::de::Deserializer::deserialize_map(self.de, visitor)
     }
@@ -1606,7 +1621,7 @@ mod tests {
             SimpleEnum::Tuple(one, two) => {
                 assert_eq!(one, 1);
                 assert_eq!(two, 2);
-            },
+            }
             _ => panic!("Expected tuple"),
         }
     }
@@ -1634,7 +1649,7 @@ mod tests {
             SimpleEnum::Tuple(one, two) => {
                 assert_eq!(one, 1);
                 assert_eq!(two, 2);
-            },
+            }
             _ => panic!("Expected tuple"),
         }
     }
@@ -1670,7 +1685,7 @@ mod tests {
             SimpleEnum::Struct { field1, field2 } => {
                 assert_eq!(field1, 1);
                 assert_eq!(field2, 2);
-            },
+            }
             _ => panic!("Expected struct"),
         }
     }
@@ -1707,7 +1722,7 @@ mod tests {
             SimpleEnum::Struct { field1, field2 } => {
                 assert_eq!(field1, 1);
                 assert_eq!(field2, 2);
-            },
+            }
             _ => panic!("Expected struct"),
         }
     }

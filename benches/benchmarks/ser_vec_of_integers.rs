@@ -1,4 +1,4 @@
-use criterion::{black_box, criterion_group, Criterion, BenchmarkId};
+use criterion::{black_box, criterion_group, BenchmarkId, Criterion};
 use serde::Serialize;
 
 fn bench_ser_vec_of_i8(c: &mut Criterion) {
@@ -9,15 +9,13 @@ fn bench_ser_vec_of_i8(c: &mut Criterion) {
 
     let mut group = c.benchmark_group("ser_vec_of_i8");
 
-    group.bench_function(
-        BenchmarkId::new("ser_vec_of_i8_json", "Vec<i8>"),
-        |b| b.iter(|| serde_json::to_vec(black_box(&value)))
-    );
+    group.bench_function(BenchmarkId::new("ser_vec_of_i8_json", "Vec<i8>"), |b| {
+        b.iter(|| serde_json::to_vec(black_box(&value)))
+    });
 
-    group.bench_function(
-        BenchmarkId::new("ser_vec_of_i8_ub_json", "Vec<i8>"),
-        |b| b.iter(|| serde_ub_json::to_bytes(black_box(&value)))
-    );
+    group.bench_function(BenchmarkId::new("ser_vec_of_i8_ub_json", "Vec<i8>"), |b| {
+        b.iter(|| serde_ub_json::to_bytes(black_box(&value)))
+    });
 
     group.finish();
 }
@@ -30,14 +28,13 @@ fn bench_ser_vec_of_i16(c: &mut Criterion) {
 
     let mut group = c.benchmark_group("ser_simple_struct");
 
-    group.bench_function(
-        BenchmarkId::new("ser_vec_of_i16_json", "Vec<i16>"),
-        |b| b.iter(|| serde_json::to_vec(black_box(&value)))
-    );
+    group.bench_function(BenchmarkId::new("ser_vec_of_i16_json", "Vec<i16>"), |b| {
+        b.iter(|| serde_json::to_vec(black_box(&value)))
+    });
 
     group.bench_function(
         BenchmarkId::new("ser_vec_of_i16_ub_json", "Vec<i16>"),
-        |b| b.iter(|| serde_ub_json::to_bytes(black_box(&value)))
+        |b| b.iter(|| serde_ub_json::to_bytes(black_box(&value))),
     );
 
     group.finish();
